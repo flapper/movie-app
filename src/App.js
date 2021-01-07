@@ -1,5 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
+import axios from "axios";
+import Movie from "./Movie"
+import "./App.css"
 
 function Food(props) {
   return (
@@ -49,56 +52,57 @@ class App extends React.Component {
     isLoading: true,
     movies: [],
   };
+
   add = () => {
     this.setState((current) => ({ count: current.count + 1 }));
   };
+
   minus = () => {
     this.setState((current) => ({ count: current.count - 1 }));
   };
+
   componentDidUpdate() {
     console.log("component updated");
   }
-  componentDidMount() {
-    console.log("component rendered");
-    setTimeout(() => {
-      this.setState({ isLoading: false, book: true });
-    }, 3000);
+
+  getMovies = async () => {
+    const { data: { data: { movies } } } = await axios.get('https://yts-proxy.now.sh/list_movies.json')
+    this.setState({ movies, isLoading: false })
   }
+  async componentDidMount() {
+    this.getMovies()
+  }
+
   componentWillUnmount() {
     console.log("GoodBye, cruel world");
   }
-  render() {
-    console.log("I'm rendering");
-    const { isLoading } = this.state;
 
+  render() {
+    const { isLoading, movies } = this.state
     return (
-      <div>
-        <h1>I am a class {this.state.count}</h1>
-        <button onClick={this.add}>Add</button>
-        <button onClick={this.minus}>Minus</button>
-        <br />
-        <br />
-        {isLoading ? "Loading..." : "We are ready"}
-      </div>
-    );
+    <section className="container">
+      {isLoading ? (
+        <div className="loader">
+          <span className="loader__text">Loading...</span>
+        </div>
+      ) : (
+        <div className="movies">
+          {movies.map(movie => (
+          <Movie
+            key={movie.id} 
+            id={movie.id} 
+            year={movie.year}
+            title={movie.title}
+            summary={movie.summary}
+            poster={movie.medium_cover_image}
+            genres={movie.genres}
+          />
+        ))}
+        </div>
+      )}
+    </section>
+    )
   }
 }
-
-// function App() {
-//   return (
-//     <div>
-//       <h1>Hello</h1>
-//       {foodILike.map((dish) => (
-//         <Food
-//           key={dish.id}
-//           name={dish.name}
-//           picture={dish.image}
-//           rating={dish.rating}
-//         />
-//       ))}
-//       {/* {foodILike.map(renderFood)} */}
-//     </div>
-//   );
-// }
 
 export default App;
